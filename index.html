@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Coach Clips</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Coach Clips</h1>
+        <p id="statusText">Local draft ready</p>
+      </div>
+      <button id="settingsBtn" class="ghost-btn">GitHub</button>
+    </header>
+
+    <main class="layout">
+      <section class="player-panel">
+        <div class="video-wrap">
+          <div id="player"></div>
+        </div>
+        <div class="now-playing">
+          <div>
+            <div class="eyebrow" id="nowCategory">No clip selected</div>
+            <h2 id="nowTitle">Choose a clip</h2>
+          </div>
+          <button id="favoriteBtn" class="icon-btn" title="Favorite">☆</button>
+        </div>
+        <div class="player-buttons">
+          <button id="prevBtn">Previous</button>
+          <button id="playBtn" class="primary">Play Clip</button>
+          <button id="replayBtn">Replay</button>
+          <button id="nextBtn">Next</button>
+        </div>
+        <details id="notesBox" class="notes-box">
+          <summary>Notes</summary>
+          <p id="clipNotes">No notes yet.</p>
+        </details>
+      </section>
+
+      <section class="work-panel">
+        <nav class="tabs" aria-label="Main navigation">
+          <button class="tab active" data-tab="review">Review</button>
+          <button class="tab" data-tab="library">Library</button>
+          <button class="tab" data-tab="plans">Plans</button>
+          <button class="tab" data-tab="data">Data</button>
+        </nav>
+
+        <section id="reviewTab" class="tab-panel active">
+          <div class="panel-head">
+            <div>
+              <h3>Practice Review</h3>
+              <p>Pick a plan, then review clips in order.</p>
+            </div>
+            <select id="reviewPlanSelect"></select>
+          </div>
+          <details class="compact-notes">
+            <summary>Plan notes</summary>
+            <textarea id="planNotesField" rows="3" placeholder="Practice emphasis, reminders, etc."></textarea>
+          </details>
+          <div id="reviewList" class="clip-list"></div>
+        </section>
+
+        <section id="libraryTab" class="tab-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Clip Library</h3>
+              <p>Search, filter, add, edit, or duplicate clips.</p>
+            </div>
+            <button id="newClipBtn" class="primary small">Add Clip</button>
+          </div>
+          <div class="filters">
+            <input id="searchInput" type="search" placeholder="Search clips, notes, tags..." />
+            <select id="categoryFilter"><option value="">All categories</option></select>
+          </div>
+          <div id="libraryList" class="clip-list"></div>
+        </section>
+
+        <section id="plansTab" class="tab-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Practice Plans</h3>
+              <p>Create playlists and reorder clips.</p>
+            </div>
+            <button id="newPlanBtn" class="primary small">New Plan</button>
+          </div>
+          <div id="plansList" class="plans-list"></div>
+        </section>
+
+        <section id="dataTab" class="tab-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Save / Load</h3>
+              <p>GitHub is manual only. Local drafts are for crash protection.</p>
+            </div>
+          </div>
+          <div class="data-grid">
+            <button id="loadGithubBtn">Load from GitHub</button>
+            <button id="saveGithubBtn" class="primary">Save to GitHub</button>
+            <button id="exportBtn">Export JSON</button>
+            <label class="file-btn">Import JSON<input id="importInput" type="file" accept="application/json" /></label>
+          </div>
+          <div class="hint-box">
+            <strong>GitHub setup:</strong> open the GitHub panel, enter owner, repo, branch, data path, and a fine-grained token with contents read/write for this repo only.
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="clipDialog">
+    <form method="dialog" id="clipForm" class="dialog-card">
+      <h3 id="clipDialogTitle">Add Clip</h3>
+      <input type="hidden" id="clipId" />
+      <label>Clip title<input id="clipTitle" required /></label>
+      <label>YouTube link<input id="clipUrl" placeholder="https://youtu.be/..." required /></label>
+      <div class="two-col">
+        <label>Start time<input id="clipStart" placeholder="0:35" required /></label>
+        <label>End time<input id="clipEnd" placeholder="optional" /></label>
+      </div>
+      <div class="two-col">
+        <label>Category<input id="clipCategory" placeholder="Shooting" /></label>
+        <label>Tags<input id="clipTags" placeholder="warmup, spacing" /></label>
+      </div>
+      <label>Notes<textarea id="clipNotesInput" rows="4"></textarea></label>
+      <label>Add to plan<select id="clipPlanSelect"><option value="">Do not add now</option></select></label>
+      <div class="dialog-actions">
+        <button value="cancel">Cancel</button>
+        <button id="deleteClipBtn" type="button" class="danger">Delete</button>
+        <button id="saveClipBtn" value="default" class="primary">Save Clip</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="planDialog">
+    <form method="dialog" id="planForm" class="dialog-card">
+      <h3 id="planDialogTitle">New Plan</h3>
+      <input type="hidden" id="planId" />
+      <label>Plan name<input id="planName" required /></label>
+      <label>Notes<textarea id="planNotesInput" rows="4"></textarea></label>
+      <div class="dialog-actions">
+        <button value="cancel">Cancel</button>
+        <button id="deletePlanBtn" type="button" class="danger">Delete</button>
+        <button id="savePlanBtn" value="default" class="primary">Save Plan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-card">
+      <h3>GitHub Settings</h3>
+      <label>Owner<input id="ghOwner" placeholder="your-github-username" /></label>
+      <label>Repo<input id="ghRepo" placeholder="coach-clips" /></label>
+      <label>Branch<input id="ghBranch" placeholder="main" /></label>
+      <label>JSON path<input id="ghPath" placeholder="data/drills.json" /></label>
+      <label>GitHub token<input id="ghToken" type="password" placeholder="Stored only in this browser" /></label>
+      <div class="dialog-actions">
+        <button value="cancel">Close</button>
+        <button id="saveSettingsBtn" value="default" class="primary">Save Settings</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
