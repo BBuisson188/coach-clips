@@ -95,7 +95,7 @@ function getEmbedUrl(clip, autoplay = false) {
     'rel=0',
     'modestbranding=1'
   ].filter(Boolean).join('&');
-  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(clip.videoId)}?${params}${getSafeOriginParam()}`;
+  return `https://www.youtube.com/embed/${encodeURIComponent(clip.videoId)}?${params}${getSafeOriginParam()}`;
 }
 function setPlayerFrame(clip, autoplay = false) {
   const wrap = document.querySelector('.video-wrap');
@@ -180,6 +180,24 @@ function renderPlans() {
   }).join('');
 }
 function escapeHtml(str = '') { return String(str).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+
+function cueClip(autoplay = false) {
+  const clip = getClip();
+  setPlayerFrame(clip, autoplay);
+  renderAll(false);
+  if (!clip) {
+    $('nowCategory').textContent = 'No clip selected';
+    $('nowTitle').textContent = 'Choose a clip';
+    $('clipNotes').textContent = 'No notes yet.';
+    $('favoriteBtn').textContent = '☆';
+    return;
+  }
+  $('nowCategory').textContent = `${clip.category || 'Uncategorized'} • ${formatTime(clip.start)}${clip.end ? `–${formatTime(clip.end)}` : ''}`;
+  $('nowTitle').textContent = clip.title || 'Untitled clip';
+  $('clipNotes').textContent = clip.notes || 'No notes yet.';
+  $('favoriteBtn').textContent = clip.favorite ? '★' : '☆';
+}
 
 window.selectClip = function(id, autoplay = false) { currentClipId = id; cueClip(autoplay); };
 window.moveClipInPlan = function(clipId, direction) {
@@ -318,9 +336,23 @@ function wireEvents() {
     const file = e.target.files[0]; if (!file) return;
     data = JSON.parse(await file.text()); saveLocal(); markDirty('Imported JSON locally');
   });
-  $('saveClipBtn').addEventListener('click', e => { e.preventDefault(); saveClipForm(); $('clipDialog').close(); });
+  $('cancelClipBtn').addEventListener('click', () => $('clipDialog').close());
+  $('cancelPlanBtn').addEventListener('click', () => $('planDialog').close());
+  $('saveClipBtn').addEventListener('click', e => {
+    e.preventDefault();
+    const form = $('clipForm');
+    if (!form.reportValidity()) return;
+    const saved = saveClipForm();
+    if (saved !== false) $('clipDialog').close();
+  });
   $('deleteClipBtn').addEventListener('click', () => { deleteClip($('clipId').value); $('clipDialog').close(); });
-  $('savePlanBtn').addEventListener('click', e => { e.preventDefault(); savePlanForm(); $('planDialog').close(); });
+  $('savePlanBtn').addEventListener('click', e => {
+    e.preventDefault();
+    const form = $('planForm');
+    if (!form.reportValidity()) return;
+    const saved = savePlanForm();
+    if (saved !== false) $('planDialog').close();
+  });
   $('deletePlanBtn').addEventListener('click', () => { deletePlan($('planId').value); $('planDialog').close(); });
 }
 function stepClip(direction) {
@@ -332,7 +364,7 @@ function stepClip(direction) {
 function saveClipForm() {
   const id = $('clipId').value || crypto.randomUUID();
   const videoId = parseYouTubeId($('clipUrl').value);
-  if (!videoId) return setStatus('Could not read that YouTube link');
+  if (!videoId) { setStatus('Could not read that YouTube link'); return false; }
   const clip = data.clips.find(c => c.id === id) || { id, createdAt: new Date().toISOString(), favorite: false, subject: 'basketball' };
   Object.assign(clip, {
     title: $('clipTitle').value.trim(), youtubeUrl: $('clipUrl').value.trim(), videoId,
@@ -343,7 +375,7 @@ function saveClipForm() {
   if (!data.clips.some(c => c.id === id)) data.clips.push(clip);
   const addPlanId = $('clipPlanSelect').value;
   if (addPlanId) { const p = data.playlists.find(p => p.id === addPlanId); if (p && !p.clipIds.includes(id)) p.clipIds.push(id); }
-  currentClipId = id; markDirty('Clip saved locally'); cueClip(false);
+  currentClipId = id; markDirty('Clip saved locally'); cueClip(false); return true;
 }
 function deleteClip(id) {
   data.clips = data.clips.filter(c => c.id !== id); data.playlists.forEach(p => p.clipIds = p.clipIds.filter(cid => cid !== id));
@@ -354,7 +386,7 @@ function savePlanForm() {
   const plan = data.playlists.find(p => p.id === id) || { id, clipIds: [], createdAt: new Date().toISOString() };
   plan.title = $('planName').value.trim(); plan.notes = $('planNotesInput').value.trim(); plan.updatedAt = new Date().toISOString();
   if (!data.playlists.some(p => p.id === id)) data.playlists.push(plan);
-  currentPlanId = id; markDirty('Plan saved locally');
+  currentPlanId = id; markDirty('Plan saved locally'); return true;
 }
 function deletePlan(id) {
   data.playlists = data.playlists.filter(p => p.id !== id); currentPlanId = data.playlists[0]?.id || null; markDirty('Plan deleted');
