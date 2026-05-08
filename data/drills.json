@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "appName": "Coach Clips",
+  "subjects": [
+    "basketball"
+  ],
+  "sources": [],
+  "clips": [
+    {
+      "id": "aaa2dc5e-f3c8-4483-9a70-3a2bd4d16f10",
+      "sourceId": "sample-source-1",
+      "title": "Sample: Defensive Closeout",
+      "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "videoId": "dQw4w9WgXcQ",
+      "start": 35,
+      "end": 55,
+      "category": "Defense",
+      "tags": [
+        "closeout",
+        "footwork"
+      ],
+      "notes": "Replace this sample with your own YouTube drill. Notes stay collapsed until you need them.",
+      "favorite": false,
+      "subject": "basketball",
+      "createdAt": "2026-05-08T17:18:57.382Z",
+      "updatedAt": "2026-05-08T17:18:57.382Z"
+    },
+    {
+      "id": "6aa26533-dba0-463d-8e5a-601c925ddc11",
+      "createdAt": "2026-05-08T17:20:57.947Z",
+      "favorite": false,
+      "subject": "basketball",
+      "title": "1v1 cutting",
+      "youtubeUrl": "https://www.youtube.com/watch?v=hpdu2NX_PQ0",
+      "videoId": "hpdu2NX_PQ0",
+      "start": 285,
+      "end": null,
+      "category": "",
+      "tags": [],
+      "notes": "",
+      "updatedAt": "2026-05-08T17:21:41.091Z"
+    }
+  ],
+  "playlists": [
+    {
+      "id": "sample-plan-1",
+      "title": "Practice Plan for Today",
+      "notes": "Emphasis: effort, spacing, and communication.",
+      "clipIds": [
+        "aaa2dc5e-f3c8-4483-9a70-3a2bd4d16f10",
+        "6aa26533-dba0-463d-8e5a-601c925ddc11"
+      ],
+      "createdAt": "2026-05-08T17:18:57.382Z",
+      "updatedAt": "2026-05-08T17:18:57.382Z"
+    }
+  ],
+  "updatedAt": "2026-05-08T17:21:41.091Z"
+}
