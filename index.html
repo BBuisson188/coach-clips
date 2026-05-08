@@ -129,7 +129,7 @@
       <div class="dialog-actions">
         <button id="cancelClipBtn" type="button">Cancel</button>
         <button id="deleteClipBtn" type="button" class="danger">Delete</button>
-        <button id="saveClipBtn" value="default" class="primary">Save Clip</button>
+        <button id="saveClipBtn" type="submit" value="default" class="primary">Save Clip</button>
       </div>
     </form>
   </dialog>
@@ -143,13 +143,13 @@
       <div class="dialog-actions">
         <button id="cancelPlanBtn" type="button">Cancel</button>
         <button id="deletePlanBtn" type="button" class="danger">Delete</button>
-        <button id="savePlanBtn" value="default" class="primary">Save Plan</button>
+        <button id="savePlanBtn" type="submit" value="default" class="primary">Save Plan</button>
       </div>
     </form>
   </dialog>
 
   <dialog id="settingsDialog">
-    <form method="dialog" class="dialog-card">
+    <form method="dialog" id="settingsForm" class="dialog-card">
       <h3>GitHub Settings</h3>
       <label>Owner<input id="ghOwner" placeholder="your-github-username" /></label>
       <label>Repo<input id="ghRepo" placeholder="coach-clips" /></label>
@@ -157,8 +157,8 @@
       <label>JSON path<input id="ghPath" placeholder="data/drills.json" /></label>
       <label>GitHub token<input id="ghToken" type="password" placeholder="Stored only in this browser" /></label>
       <div class="dialog-actions">
-        <button value="cancel">Close</button>
-        <button id="saveSettingsBtn" value="default" class="primary">Save Settings</button>
+        <button id="closeSettingsBtn" type="button" value="cancel">Close</button>
+        <button id="saveSettingsBtn" type="submit" value="default" class="primary">Save Settings</button>
       </div>
     </form>
   </dialog>

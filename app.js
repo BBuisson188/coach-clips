@@ -54,6 +54,7 @@ function markDirty(message = 'Unsaved local changes') { dirty = true; data.updat
 function setStatus(text) { $('statusText').textContent = text; }
 function getClip(id = currentClipId) { return data.clips.find(c => c.id === id); }
 function getPlan(id = currentPlanId) { return data.playlists.find(p => p.id === id); }
+function nowIso() { return new Date().toISOString(); }
 function formatTime(seconds = 0) {
   seconds = Number(seconds) || 0;
   const h = Math.floor(seconds / 3600);
@@ -69,6 +70,7 @@ function parseTime(value) {
   return parts.reduce((acc, part) => acc * 60 + part, 0);
 }
 function parseYouTubeId(url) {
+  if (!url) return '';
   try {
     const u = new URL(url);
     if (u.hostname.includes('youtu.be')) return u.pathname.split('/').filter(Boolean)[0];
@@ -79,6 +81,76 @@ function parseYouTubeId(url) {
   return url.trim().match(/^[a-zA-Z0-9_-]{11}$/) ? url.trim() : '';
 }
 function thumbnail(videoId) { return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`; }
+
+function normalizeTags(tags) {
+  if (Array.isArray(tags)) return tags.map(t => String(t).trim()).filter(Boolean);
+  if (typeof tags === 'string') return tags.split(',').map(t => t.trim()).filter(Boolean);
+  return [];
+}
+function normalizeAppData(raw = {}) {
+  const now = nowIso();
+  const sources = Array.isArray(raw.sources) ? raw.sources : [];
+  const sourceById = new Map(sources.map(source => [source.id, source]));
+  const clips = (Array.isArray(raw.clips) ? raw.clips : []).map(clip => {
+    const source = sourceById.get(clip.sourceId) || {};
+    const youtubeUrl = clip.youtubeUrl || clip.url || source.url || '';
+    const videoId = clip.videoId || clip.youtubeId || source.youtubeId || parseYouTubeId(youtubeUrl);
+    return {
+      id: clip.id || crypto.randomUUID(),
+      sourceId: clip.sourceId || source.id || '',
+      title: clip.title || source.title || 'Untitled clip',
+      youtubeUrl,
+      videoId,
+      start: Number(clip.start ?? clip.startSeconds ?? 0) || 0,
+      end: clip.end ?? clip.endSeconds ?? null,
+      category: clip.category || '',
+      tags: normalizeTags(clip.tags),
+      notes: clip.notes || '',
+      favorite: Boolean(clip.favorite),
+      subject: clip.subject || raw.settings?.defaultSubjectId || 'basketball',
+      createdAt: clip.createdAt || now,
+      updatedAt: clip.updatedAt || clip.createdAt || now
+    };
+  }).map(clip => ({ ...clip, end: clip.end === '' || clip.end == null ? null : Number(clip.end) || null }));
+  const clipIds = new Set(clips.map(clip => clip.id));
+  const playlists = (Array.isArray(raw.playlists) ? raw.playlists : []).map(plan => ({
+    id: plan.id || crypto.randomUUID(),
+    title: plan.title || 'Untitled plan',
+    notes: plan.notes || '',
+    clipIds: Array.isArray(plan.clipIds) ? plan.clipIds.filter(id => clipIds.has(id)) : [],
+    createdAt: plan.createdAt || now,
+    updatedAt: plan.updatedAt || plan.createdAt || now
+  }));
+  const subjects = Array.isArray(raw.subjects) && raw.subjects.length ? raw.subjects : ['basketball'];
+  return {
+    schemaVersion: raw.schemaVersion || 1,
+    appName: raw.appName || 'Coach Clips',
+    subjects,
+    sources,
+    clips,
+    playlists,
+    settings: {
+      defaultSubjectId: raw.settings?.defaultSubjectId || 'basketball',
+      lastSelectedPlaylistId: raw.settings?.lastSelectedPlaylistId || null,
+      lastSelectedClipId: raw.settings?.lastSelectedClipId || null
+    },
+    updatedAt: raw.updatedAt || now
+  };
+}
+function rememberSelection() {
+  data.settings = data.settings || {};
+  data.settings.lastSelectedPlaylistId = currentPlanId || null;
+  data.settings.lastSelectedClipId = currentClipId || null;
+}
+function setCurrentFromData() {
+  const requestedPlanId = data.settings?.lastSelectedPlaylistId;
+  currentPlanId = data.playlists.some(p => p.id === requestedPlanId) ? requestedPlanId : data.playlists[0]?.id || null;
+  const plan = getPlan();
+  const requestedClipId = data.settings?.lastSelectedClipId;
+  currentClipId = data.clips.some(c => c.id === requestedClipId)
+    ? requestedClipId
+    : plan?.clipIds.find(id => data.clips.some(c => c.id === id)) || data.clips[0]?.id || null;
+}
 
 function getSafeOriginParam() {
   return window.location.protocol === 'http:' || window.location.protocol === 'https:'
@@ -99,8 +171,10 @@ function getEmbedUrl(clip, autoplay = false) {
 }
 function setPlayerFrame(clip, autoplay = false) {
   const wrap = document.querySelector('.video-wrap');
+  if (!wrap) return;
   if (!clip?.videoId) {
-    wrap.innerHTML = '<div id="player" class="player-placeholder">Choose a clip</div>';
+    const message = clip ? 'This clip needs a valid YouTube link' : 'Choose a clip';
+    wrap.innerHTML = `<div id="player" class="player-placeholder">${escapeHtml(message)}</div>`;
     return;
   }
   wrap.innerHTML = `<iframe id="player" src="${getEmbedUrl(clip, autoplay)}" title="${escapeHtml(clip.title || 'YouTube clip')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
@@ -119,6 +193,11 @@ function renderAll(keepPlayer = true) {
     $('nowTitle').textContent = clip.title;
     $('clipNotes').textContent = clip.notes || 'No notes yet.';
     $('favoriteBtn').textContent = clip.favorite ? '★' : '☆';
+  } else {
+    $('nowCategory').textContent = 'No clip selected';
+    $('nowTitle').textContent = 'Choose a clip';
+    $('clipNotes').textContent = 'No notes yet.';
+    $('favoriteBtn').textContent = '☆';
   }
 }
 function renderPlanSelects() {
@@ -139,7 +218,7 @@ function clipCard(clip, context = 'library', index = -1) {
   const selected = clip.id === currentClipId ? 'style="border-color: rgba(56,189,248,.65)"' : '';
   return `<article class="clip-card" ${selected}>
     <div class="clip-main">
-      <img class="thumb" src="${thumbnail(clip.videoId)}" alt="" loading="lazy">
+      <img class="thumb" src="${clip.videoId ? thumbnail(clip.videoId) : ''}" alt="" loading="lazy">
       <div>
         <div class="clip-title">${clip.favorite ? '★ ' : ''}${escapeHtml(clip.title)}</div>
         <div class="clip-meta">${escapeHtml(clip.category || 'Uncategorized')} • ${formatTime(clip.start)}${clip.end ? `–${formatTime(clip.end)}` : ''} ${clip.tags?.length ? '• #' + clip.tags.map(escapeHtml).join(' #') : ''}</div>
@@ -175,14 +254,14 @@ function renderPlans() {
     return `<article class="plan-card">
       <div class="plan-header"><div><strong>${escapeHtml(plan.title)}</strong><div class="clip-meta">${clips.length} clips</div></div><button onclick="openPlanDialog('${plan.id}')">Edit</button></div>
       ${plan.notes ? `<details><summary>Notes</summary><p>${escapeHtml(plan.notes)}</p></details>` : ''}
-      <div class="plan-clips">${clips.map((c,i) => `<div class="drag-row"><span>${i+1}</span><span>${escapeHtml(c.title)}</span><button onclick="currentPlanId='${plan.id}'; moveClipInPlan('${c.id}', -1)">↑</button><button onclick="currentPlanId='${plan.id}'; moveClipInPlan('${c.id}', 1)">↓</button></div>`).join('')}</div>
+      <div class="plan-clips">${clips.map((c,i) => `<div class="drag-row"><span>${i+1}</span><span>${escapeHtml(c.title)}</span><button onclick="moveClipInSpecificPlan('${plan.id}', '${c.id}', -1)">↑</button><button onclick="moveClipInSpecificPlan('${plan.id}', '${c.id}', 1)">↓</button></div>`).join('')}</div>
     </article>`;
   }).join('');
 }
 function escapeHtml(str = '') { return String(str).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 
 
-function cueClip(autoplay = false) {
+function cueCurrentClip(autoplay = false) {
   const clip = getClip();
   setPlayerFrame(clip, autoplay);
   renderAll(false);
@@ -198,14 +277,21 @@ function cueClip(autoplay = false) {
   $('clipNotes').textContent = clip.notes || 'No notes yet.';
   $('favoriteBtn').textContent = clip.favorite ? '★' : '☆';
 }
+function cueClip(autoplay = false) { cueCurrentClip(autoplay); }
+window.cueClip = cueCurrentClip;
 
-window.selectClip = function(id, autoplay = false) { currentClipId = id; cueClip(autoplay); };
+window.selectClip = function(id, autoplay = false) { currentClipId = id; rememberSelection(); cueCurrentClip(autoplay); };
 window.moveClipInPlan = function(clipId, direction) {
   const plan = getPlan(); if (!plan) return;
   const i = plan.clipIds.indexOf(clipId); const j = i + direction;
   if (i < 0 || j < 0 || j >= plan.clipIds.length) return;
   [plan.clipIds[i], plan.clipIds[j]] = [plan.clipIds[j], plan.clipIds[i]];
   markDirty('Plan order changed');
+};
+window.moveClipInSpecificPlan = function(planId, clipId, direction) {
+  currentPlanId = planId;
+  rememberSelection();
+  window.moveClipInPlan(clipId, direction);
 };
 window.removeFromPlan = function(clipId) {
   const plan = getPlan(); if (!plan) return;
@@ -219,7 +305,7 @@ window.addClipToCurrentPlan = function(clipId) {
 window.duplicateClip = function(id) {
   const original = getClip(id); if (!original) return;
   const copy = { ...structuredClone(original), id: crypto.randomUUID(), title: `${original.title} copy`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  data.clips.push(copy); currentClipId = copy.id; markDirty('Clip duplicated'); cueClip(false);
+  data.clips.push(copy); currentClipId = copy.id; rememberSelection(); markDirty('Clip duplicated'); cueCurrentClip(false);
 };
 
 window.openClipDialog = function(id = '') {
@@ -277,7 +363,12 @@ async function githubRequest(method, body) {
   } catch (err) {
     throw new Error(`Network request failed. If you opened index.html directly, run it through GitHub Pages or a local web server. Details: ${err.message}`);
   }
-  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    if (method === 'GET' && res.status === 404) {
+      throw new Error('GitHub data file was not found. Save to GitHub can create it.');
+    }
+    throw new Error(`${res.status}: ${await res.text()}`);
+  }
   return res.json();
 }
 async function loadFromGithub() {
@@ -285,14 +376,16 @@ async function loadFromGithub() {
   const file = await githubRequest('GET');
   githubSha = file.sha;
   const text = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
-  data = JSON.parse(text);
+  data = normalizeAppData(JSON.parse(text));
   saveLocal(); dirty = false;
-  currentPlanId = data.playlists[0]?.id || null;
-  currentClipId = getPlan()?.clipIds[0] || data.clips[0]?.id || null;
-  setStatus('Loaded latest GitHub JSON'); renderAll(); cueClip(false);
+  setCurrentFromData();
+  setStatus('Loaded latest GitHub JSON'); renderAll(false); cueCurrentClip(false);
 }
 async function saveToGithub() {
   setStatus('Saving to GitHub...');
+  data = normalizeAppData(data);
+  rememberSelection();
+  data.updatedAt = nowIso();
   if (!githubSha) {
     try { const file = await githubRequest('GET'); githubSha = file.sha; } catch {}
   }
@@ -314,19 +407,22 @@ function wireEvents() {
     $('ghOwner').value = settings.owner || ''; $('ghRepo').value = settings.repo || ''; $('ghBranch').value = settings.branch || 'main'; $('ghPath').value = settings.path || 'data/drills.json'; $('ghToken').value = settings.token || '';
     $('settingsDialog').showModal();
   });
-  $('saveSettingsBtn').addEventListener('click', () => {
+  $('settingsForm').addEventListener('submit', e => {
+    e.preventDefault();
     settings = { owner: $('ghOwner').value.trim(), repo: $('ghRepo').value.trim(), branch: $('ghBranch').value.trim() || 'main', path: $('ghPath').value.trim() || 'data/drills.json', token: $('ghToken').value.trim() };
     saveSettings(); setStatus('GitHub settings saved');
+    $('settingsDialog').close();
   });
+  $('closeSettingsBtn').addEventListener('click', () => $('settingsDialog').close());
   $('newClipBtn').addEventListener('click', () => openClipDialog());
   $('newPlanBtn').addEventListener('click', () => openPlanDialog());
   $('searchInput').addEventListener('input', renderLibrary);
   $('categoryFilter').addEventListener('change', renderLibrary);
-  $('reviewPlanSelect').addEventListener('change', e => { currentPlanId = e.target.value; currentClipId = getPlan()?.clipIds[0] || currentClipId; renderAll(); cueClip(false); });
+  $('reviewPlanSelect').addEventListener('change', e => { currentPlanId = e.target.value; currentClipId = getPlan()?.clipIds[0] || currentClipId; rememberSelection(); renderAll(false); cueCurrentClip(false); });
   $('planNotesField').addEventListener('change', e => { const p = getPlan(); if (p) { p.notes = e.target.value; markDirty('Plan notes updated'); } });
   $('favoriteBtn').addEventListener('click', () => { const c = getClip(); if (c) { c.favorite = !c.favorite; markDirty('Favorite updated'); } });
-  $('playBtn').addEventListener('click', () => cueClip(true));
-  $('replayBtn').addEventListener('click', () => cueClip(true));
+  $('playBtn').addEventListener('click', () => cueCurrentClip(true));
+  $('replayBtn').addEventListener('click', () => cueCurrentClip(true));
   $('prevBtn').addEventListener('click', () => stepClip(-1));
   $('nextBtn').addEventListener('click', () => stepClip(1));
   $('loadGithubBtn').addEventListener('click', () => loadFromGithub().catch(err => setStatus(`Load failed: ${err.message}`)));
@@ -334,11 +430,11 @@ function wireEvents() {
   $('exportBtn').addEventListener('click', exportJson);
   $('importInput').addEventListener('change', async e => {
     const file = e.target.files[0]; if (!file) return;
-    data = JSON.parse(await file.text()); saveLocal(); markDirty('Imported JSON locally');
+    data = normalizeAppData(JSON.parse(await file.text())); setCurrentFromData(); saveLocal(); markDirty('Imported JSON locally'); cueCurrentClip(false);
   });
   $('cancelClipBtn').addEventListener('click', () => $('clipDialog').close());
   $('cancelPlanBtn').addEventListener('click', () => $('planDialog').close());
-  $('saveClipBtn').addEventListener('click', e => {
+  $('clipForm').addEventListener('submit', e => {
     e.preventDefault();
     const form = $('clipForm');
     if (!form.reportValidity()) return;
@@ -346,7 +442,7 @@ function wireEvents() {
     if (saved !== false) $('clipDialog').close();
   });
   $('deleteClipBtn').addEventListener('click', () => { deleteClip($('clipId').value); $('clipDialog').close(); });
-  $('savePlanBtn').addEventListener('click', e => {
+  $('planForm').addEventListener('submit', e => {
     e.preventDefault();
     const form = $('planForm');
     if (!form.reportValidity()) return;
@@ -359,7 +455,8 @@ function stepClip(direction) {
   const plan = getPlan(); const list = plan?.clipIds || data.clips.map(c => c.id);
   const i = Math.max(0, list.indexOf(currentClipId));
   currentClipId = list[Math.min(list.length - 1, Math.max(0, i + direction))] || currentClipId;
-  cueClip(false);
+  rememberSelection();
+  cueCurrentClip(false);
 }
 function saveClipForm() {
   const id = $('clipId').value || crypto.randomUUID();
@@ -375,23 +472,25 @@ function saveClipForm() {
   if (!data.clips.some(c => c.id === id)) data.clips.push(clip);
   const addPlanId = $('clipPlanSelect').value;
   if (addPlanId) { const p = data.playlists.find(p => p.id === addPlanId); if (p && !p.clipIds.includes(id)) p.clipIds.push(id); }
-  currentClipId = id; markDirty('Clip saved locally'); cueClip(false); return true;
+  currentClipId = id; rememberSelection(); markDirty('Clip saved locally'); cueCurrentClip(false); return true;
 }
 function deleteClip(id) {
   data.clips = data.clips.filter(c => c.id !== id); data.playlists.forEach(p => p.clipIds = p.clipIds.filter(cid => cid !== id));
-  currentClipId = data.clips[0]?.id || null; markDirty('Clip deleted'); cueClip(false);
+  currentClipId = data.clips[0]?.id || null; rememberSelection(); markDirty('Clip deleted'); cueCurrentClip(false);
 }
 function savePlanForm() {
   const id = $('planId').value || crypto.randomUUID();
   const plan = data.playlists.find(p => p.id === id) || { id, clipIds: [], createdAt: new Date().toISOString() };
   plan.title = $('planName').value.trim(); plan.notes = $('planNotesInput').value.trim(); plan.updatedAt = new Date().toISOString();
   if (!data.playlists.some(p => p.id === id)) data.playlists.push(plan);
-  currentPlanId = id; markDirty('Plan saved locally'); return true;
+  currentPlanId = id; rememberSelection(); markDirty('Plan saved locally'); return true;
 }
 function deletePlan(id) {
-  data.playlists = data.playlists.filter(p => p.id !== id); currentPlanId = data.playlists[0]?.id || null; markDirty('Plan deleted');
+  data.playlists = data.playlists.filter(p => p.id !== id); currentPlanId = data.playlists[0]?.id || null; rememberSelection(); markDirty('Plan deleted');
 }
 
-wireEvents(); renderAll(); cueClip(false);
+data = normalizeAppData(data);
+setCurrentFromData();
+wireEvents(); renderAll(false); cueCurrentClip(false);
 if (window.location.protocol === 'file:') setStatus('Opened as a local file. Use GitHub Pages or a local web server for best results.');
 if (settings.owner && settings.repo && settings.token) loadFromGithub().catch(err => setStatus(`Using local draft. GitHub auto-load failed: ${err.message}`));
