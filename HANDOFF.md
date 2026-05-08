@@ -2,6 +2,16 @@
 
 ## Latest Codex Update - 2026-05-08
 
+Icon/PWA pass completed:
+
+- Added Safari/iPhone home-screen support in `index.html` with `apple-touch-icon`, `apple-mobile-web-app-*` meta tags, favicon links, theme color, and a manifest link.
+- The iPhone home-screen icon is `icon/apple-touch-icon.png` and is confirmed to be `180x180`.
+- Updated `icon/site.webmanifest` to use the app name `Coach Clips`, match the app theme color, and use GitHub Pages-safe relative icon paths.
+- Kept runtime icon files: `apple-touch-icon.png`, `favicon-16x16.png`, `favicon-32x32.png`, `favicon.ico`, `icon-192.png`, `icon-512.png`, and `site.webmanifest`.
+- Removed the generator README file from `icon/`.
+- Renamed extra binary assets with a `delete-` prefix because binary deletion was blocked in this environment: `delete-icon-1024.png` and `delete-mstile-150x150.png`.
+- Added `.gitignore` entry `icon/delete-*` so those extra renamed files are not published by a future normal `git add .`.
+
 Stabilization pass completed in this workspace:
 
 - Fixed the GitHub load lifecycle by normalizing all loaded/imported JSON before rendering or cueing the player.
