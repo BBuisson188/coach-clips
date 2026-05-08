@@ -7,25 +7,6 @@
   "sources": [],
   "clips": [
     {
-      "id": "aaa2dc5e-f3c8-4483-9a70-3a2bd4d16f10",
-      "sourceId": "sample-source-1",
-      "title": "Sample: Defensive Closeout",
-      "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "videoId": "dQw4w9WgXcQ",
-      "start": 35,
-      "end": 55,
-      "category": "Defense",
-      "tags": [
-        "closeout",
-        "footwork"
-      ],
-      "notes": "Replace this sample with your own YouTube drill. Notes stay collapsed until you need them.",
-      "favorite": false,
-      "subject": "basketball",
-      "createdAt": "2026-05-08T17:18:57.382Z",
-      "updatedAt": "2026-05-08T17:18:57.382Z"
-    },
-    {
       "id": "6aa26533-dba0-463d-8e5a-601c925ddc11",
       "sourceId": "",
       "title": "1v1 cutting",
@@ -57,7 +38,7 @@
   "settings": {
     "defaultSubjectId": "basketball",
     "lastSelectedPlaylistId": "sample-plan-1",
-    "lastSelectedClipId": "aaa2dc5e-f3c8-4483-9a70-3a2bd4d16f10"
+    "lastSelectedClipId": "6aa26533-dba0-463d-8e5a-601c925ddc11"
   },
-  "updatedAt": "2026-05-08T18:38:49.696Z"
+  "updatedAt": "2026-05-08T18:39:15.554Z"
 }
