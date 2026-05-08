@@ -27,9 +27,7 @@
     },
     {
       "id": "6aa26533-dba0-463d-8e5a-601c925ddc11",
-      "createdAt": "2026-05-08T17:20:57.947Z",
-      "favorite": false,
-      "subject": "basketball",
+      "sourceId": "",
       "title": "1v1 cutting",
       "youtubeUrl": "https://www.youtube.com/watch?v=hpdu2NX_PQ0",
       "videoId": "hpdu2NX_PQ0",
@@ -38,6 +36,9 @@
       "category": "",
       "tags": [],
       "notes": "",
+      "favorite": false,
+      "subject": "basketball",
+      "createdAt": "2026-05-08T17:20:57.947Z",
       "updatedAt": "2026-05-08T17:21:41.091Z"
     }
   ],
@@ -47,12 +48,16 @@
       "title": "Practice Plan for Today",
       "notes": "Emphasis: effort, spacing, and communication.",
       "clipIds": [
-        "6aa26533-dba0-463d-8e5a-601c925ddc11",
-        "aaa2dc5e-f3c8-4483-9a70-3a2bd4d16f10"
+        "6aa26533-dba0-463d-8e5a-601c925ddc11"
       ],
       "createdAt": "2026-05-08T17:18:57.382Z",
       "updatedAt": "2026-05-08T17:18:57.382Z"
     }
   ],
-  "updatedAt": "2026-05-08T17:22:03.178Z"
+  "settings": {
+    "defaultSubjectId": "basketball",
+    "lastSelectedPlaylistId": "sample-plan-1",
+    "lastSelectedClipId": "aaa2dc5e-f3c8-4483-9a70-3a2bd4d16f10"
+  },
+  "updatedAt": "2026-05-08T18:37:08.810Z"
 }
