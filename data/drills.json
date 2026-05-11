@@ -21,6 +21,22 @@
       "subject": "basketball",
       "createdAt": "2026-05-08T17:20:57.947Z",
       "updatedAt": "2026-05-08T17:21:41.091Z"
+    },
+    {
+      "id": "8de75b10-8b6d-4f9d-a78e-efe9b8168a03",
+      "sourceId": "",
+      "title": "rotating monkey middle",
+      "youtubeUrl": "https://www.youtube.com/watch?v=3egVx2oiDCg",
+      "videoId": "3egVx2oiDCg",
+      "start": 248,
+      "end": null,
+      "category": "",
+      "tags": [],
+      "notes": "",
+      "favorite": false,
+      "subject": "basketball",
+      "createdAt": "2026-05-11T15:32:36.139Z",
+      "updatedAt": "2026-05-11T15:32:36.140Z"
     }
   ],
   "playlists": [
@@ -29,7 +45,8 @@
       "title": "Practice Plan for Today",
       "notes": "Emphasis: effort, spacing, and communication.",
       "clipIds": [
-        "6aa26533-dba0-463d-8e5a-601c925ddc11"
+        "6aa26533-dba0-463d-8e5a-601c925ddc11",
+        "8de75b10-8b6d-4f9d-a78e-efe9b8168a03"
       ],
       "createdAt": "2026-05-08T17:18:57.382Z",
       "updatedAt": "2026-05-08T17:18:57.382Z"
@@ -38,7 +55,7 @@
   "settings": {
     "defaultSubjectId": "basketball",
     "lastSelectedPlaylistId": "sample-plan-1",
-    "lastSelectedClipId": "6aa26533-dba0-463d-8e5a-601c925ddc11"
+    "lastSelectedClipId": "8de75b10-8b6d-4f9d-a78e-efe9b8168a03"
   },
-  "updatedAt": "2026-05-08T18:39:15.554Z"
+  "updatedAt": "2026-05-11T15:57:47.964Z"
 }
