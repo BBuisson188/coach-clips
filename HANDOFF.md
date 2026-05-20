@@ -2,6 +2,14 @@
 
 ## Latest Codex Update - 2026-05-08
 
+Public GitHub load update:
+
+- Load from GitHub no longer requires saved GitHub settings or a token.
+- The app now defaults to `BBuisson188/coach-clips`, branch `main`, path `data/drills.json` for loading.
+- Public GitHub GET requests omit the `Authorization` header when no token is present.
+- Save to GitHub still requires a token and now reports `Saving to GitHub requires a GitHub token` if the token is missing.
+- The GitHub settings dialog now pre-fills the default repo details and labels the token as only required for saving.
+
 Icon/PWA pass completed:
 
 - Added Safari/iPhone home-screen support in `index.html` with `apple-touch-icon`, `apple-mobile-web-app-*` meta tags, favicon links, theme color, and a manifest link.

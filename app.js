@@ -1,5 +1,11 @@
 const STORAGE_KEY = 'coachClipsData.v1';
 const SETTINGS_KEY = 'coachClipsGithub.v1';
+const DEFAULT_GITHUB_SETTINGS = {
+  owner: 'BBuisson188',
+  repo: 'coach-clips',
+  branch: 'main',
+  path: 'data/drills.json'
+};
 
 const defaultData = {
   schemaVersion: 1,
@@ -333,10 +339,10 @@ window.openPlanDialog = function(id = '') {
 };
 
 function normalizeGithubSettings(raw = settings) {
-  let owner = (raw.owner || '').trim();
-  let repo = (raw.repo || '').trim();
-  const branch = (raw.branch || 'main').trim();
-  const path = (raw.path || 'data/drills.json').trim().replace(/^\/+/, '');
+  let owner = (raw.owner || DEFAULT_GITHUB_SETTINGS.owner).trim();
+  let repo = (raw.repo || DEFAULT_GITHUB_SETTINGS.repo).trim();
+  const branch = (raw.branch || DEFAULT_GITHUB_SETTINGS.branch).trim();
+  const path = (raw.path || DEFAULT_GITHUB_SETTINGS.path).trim().replace(/^\/+/, '');
   const token = (raw.token || '').trim();
 
   // Accept either separate owner/repo fields or a pasted repo URL/slug.
@@ -349,15 +355,18 @@ function normalizeGithubSettings(raw = settings) {
 }
 async function githubRequest(method, body) {
   const { owner, repo, branch, path, token } = normalizeGithubSettings();
-  if (!owner || !repo || !path || !token) throw new Error('Missing GitHub settings');
+  if (!owner || !repo || !path) throw new Error('Missing GitHub repository settings');
+  if (method !== 'GET' && !token) throw new Error('Saving to GitHub requires a GitHub token');
   const encodedPath = path.split('/').map(encodeURIComponent).join('/');
   const baseUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}`;
   const url = method === 'GET' ? `${baseUrl}?ref=${encodeURIComponent(branch)}` : baseUrl;
+  const headers = { 'Accept': 'application/vnd.github+json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
   let res;
   try {
     res = await fetch(url, {
       method,
-      headers: { 'Accept': 'application/vnd.github+json', 'Authorization': `Bearer ${token}` },
+      headers,
       body: body ? JSON.stringify(body) : undefined
     });
   } catch (err) {
@@ -386,11 +395,12 @@ async function saveToGithub() {
   data = normalizeAppData(data);
   rememberSelection();
   data.updatedAt = nowIso();
+  const { branch } = normalizeGithubSettings();
   if (!githubSha) {
     try { const file = await githubRequest('GET'); githubSha = file.sha; } catch {}
   }
   const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-  const body = { message: `Update Coach Clips data ${new Date().toLocaleString()}`, content, branch: settings.branch || 'main', sha: githubSha || undefined };
+  const body = { message: `Update Coach Clips data ${new Date().toLocaleString()}`, content, branch, sha: githubSha || undefined };
   const saved = await githubRequest('PUT', body);
   githubSha = saved.content?.sha || null;
   dirty = false; setStatus('Saved to GitHub');
@@ -404,7 +414,8 @@ function exportJson() {
 function wireEvents() {
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
   $('settingsBtn').addEventListener('click', () => {
-    $('ghOwner').value = settings.owner || ''; $('ghRepo').value = settings.repo || ''; $('ghBranch').value = settings.branch || 'main'; $('ghPath').value = settings.path || 'data/drills.json'; $('ghToken').value = settings.token || '';
+    const gh = normalizeGithubSettings();
+    $('ghOwner').value = gh.owner; $('ghRepo').value = gh.repo; $('ghBranch').value = gh.branch; $('ghPath').value = gh.path; $('ghToken').value = settings.token || '';
     $('settingsDialog').showModal();
   });
   $('settingsForm').addEventListener('submit', e => {
@@ -493,4 +504,4 @@ data = normalizeAppData(data);
 setCurrentFromData();
 wireEvents(); renderAll(false); cueCurrentClip(false);
 if (window.location.protocol === 'file:') setStatus('Opened as a local file. Use GitHub Pages or a local web server for best results.');
-if (settings.owner && settings.repo && settings.token) loadFromGithub().catch(err => setStatus(`Using local draft. GitHub auto-load failed: ${err.message}`));
+if (settings.owner && settings.repo) loadFromGithub().catch(err => setStatus(`Using local draft. GitHub auto-load failed: ${err.message}`));

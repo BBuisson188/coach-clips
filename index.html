@@ -112,7 +112,7 @@
             <label class="file-btn">Import JSON<input id="importInput" type="file" accept="application/json" /></label>
           </div>
           <div class="hint-box">
-            <strong>GitHub setup:</strong> open the GitHub panel, enter owner, repo, branch, data path, and a fine-grained token with contents read/write for this repo only.
+            <strong>GitHub setup:</strong> Load uses the public Coach Clips repo by default and does not need a token. Save requires a fine-grained token with contents read/write for this repo only.
           </div>
         </section>
       </section>
@@ -160,11 +160,11 @@
   <dialog id="settingsDialog">
     <form method="dialog" id="settingsForm" class="dialog-card">
       <h3>GitHub Settings</h3>
-      <label>Owner<input id="ghOwner" placeholder="your-github-username" /></label>
+      <label>Owner<input id="ghOwner" placeholder="BBuisson188" /></label>
       <label>Repo<input id="ghRepo" placeholder="coach-clips" /></label>
       <label>Branch<input id="ghBranch" placeholder="main" /></label>
       <label>JSON path<input id="ghPath" placeholder="data/drills.json" /></label>
-      <label>GitHub token<input id="ghToken" type="password" placeholder="Stored only in this browser" /></label>
+      <label>GitHub token<input id="ghToken" type="password" placeholder="Only required for saving" /></label>
       <div class="dialog-actions">
         <button id="closeSettingsBtn" type="button" value="cancel">Close</button>
         <button id="saveSettingsBtn" type="submit" value="default" class="primary">Save Settings</button>
