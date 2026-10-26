@@ -37,6 +37,54 @@
       "subject": "basketball",
       "createdAt": "2026-05-11T15:32:36.139Z",
       "updatedAt": "2026-05-11T15:32:36.140Z"
+    },
+    {
+      "id": "ea7b42ef-4bb2-4a5d-85f8-c8c5f8a01045",
+      "sourceId": "",
+      "title": "Houston Passin",
+      "youtubeUrl": "https://youtu.be/OituSPPT0q0?is=GNW_L6NGm8wiBqjh",
+      "videoId": "OituSPPT0q0",
+      "start": 18,
+      "end": null,
+      "category": "Passing",
+      "tags": [],
+      "notes": "",
+      "favorite": false,
+      "subject": "basketball",
+      "createdAt": "2026-10-26T21:49:49.607Z",
+      "updatedAt": "2026-10-26T21:49:49.607Z"
+    },
+    {
+      "id": "c5d7ddcb-d4f2-49c0-a0cd-fdbfc25068bf",
+      "sourceId": "",
+      "title": "Power 200 ball handling",
+      "youtubeUrl": "https://youtu.be/Rsgq4TPRkzE?is=-3RukH95oUjzVb3j",
+      "videoId": "Rsgq4TPRkzE",
+      "start": 39,
+      "end": null,
+      "category": "",
+      "tags": [],
+      "notes": "",
+      "favorite": false,
+      "subject": "basketball",
+      "createdAt": "2026-10-26T21:54:35.721Z",
+      "updatedAt": "2026-10-26T21:54:35.721Z"
+    },
+    {
+      "id": "677e7afc-9180-447a-8fbe-e85891f7a8fd",
+      "sourceId": "",
+      "title": "22 in 2",
+      "youtubeUrl": "https://youtu.be/4cs0Yojx97o?is=lnk4eJ2gJPN9VgK4",
+      "videoId": "4cs0Yojx97o",
+      "start": 42,
+      "end": null,
+      "category": "",
+      "tags": [],
+      "notes": "",
+      "favorite": false,
+      "subject": "basketball",
+      "createdAt": "2026-10-26T22:14:43.512Z",
+      "updatedAt": "2026-10-26T22:14:43.512Z"
     }
   ],
   "playlists": [
@@ -46,7 +94,10 @@
       "notes": "Emphasis: effort, spacing, and communication.",
       "clipIds": [
         "6aa26533-dba0-463d-8e5a-601c925ddc11",
-        "8de75b10-8b6d-4f9d-a78e-efe9b8168a03"
+        "8de75b10-8b6d-4f9d-a78e-efe9b8168a03",
+        "ea7b42ef-4bb2-4a5d-85f8-c8c5f8a01045",
+        "c5d7ddcb-d4f2-49c0-a0cd-fdbfc25068bf",
+        "677e7afc-9180-447a-8fbe-e85891f7a8fd"
       ],
       "createdAt": "2026-05-08T17:18:57.382Z",
       "updatedAt": "2026-05-08T17:18:57.382Z"
@@ -55,7 +106,7 @@
   "settings": {
     "defaultSubjectId": "basketball",
     "lastSelectedPlaylistId": "sample-plan-1",
-    "lastSelectedClipId": "8de75b10-8b6d-4f9d-a78e-efe9b8168a03"
+    "lastSelectedClipId": "ea7b42ef-4bb2-4a5d-85f8-c8c5f8a01045"
   },
-  "updatedAt": "2026-05-11T15:58:02.174Z"
+  "updatedAt": "2026-10-26T22:19:55.591Z"
 }
